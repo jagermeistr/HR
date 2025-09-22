@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId(column: 'company_id')->constrained()->onDelete(action: 'cascade');
             $table->year(column: 'year');
-            $table->unsinedTinyinteger(column: 'month');
-            $table->unique(column: ['company_id', 'year', 'month']);
+            $table->unsignedTinyInteger(column: 'month');
+            $table->unique(['company_id', 'year', 'month']);
             $table->timestamps();
         });
     }

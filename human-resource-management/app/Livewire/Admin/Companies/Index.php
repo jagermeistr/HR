@@ -5,9 +5,12 @@ namespace App\Livewire\Admin\Companies;
 use App\Models\Company;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\Features\SupportPagination\WithoutUrlPagination;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination, WithoutUrlPagination;
     public function delete($id): void
     {
         $company= Company::find($id);
@@ -18,6 +21,8 @@ class Index extends Component
     
     public function render()
     {
-        return view('livewire.admin.companies.index');
+        return view('livewire.admin.companies.index', [
+            'companies' => Company::latest()->paginate(perPage: 10),
+        ]);
     }
 }

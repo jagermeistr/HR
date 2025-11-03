@@ -8,6 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contract extends Model
 {
+    protected $fillable = [
+        'employee_id',
+        'designation_id',
+        'start_date',
+        'end_date',
+        'rate',
+        'rate_type',
+    ];
+
+    protected $appends = [
+        'duration',
+    ];
+
+    
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(related: Employee::class);

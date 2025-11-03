@@ -19,6 +19,8 @@ class Payroll extends Model
         return $this->hasMany(related: Salary::class);
     }
 
+    
+
     public function payments(): HasMany
     {
         return $this->hasMany(related: Payment::class);
@@ -36,6 +38,6 @@ class Payroll extends Model
 
     public function scopeInCompany($query): mixed
     {
-        return $query->where('company_id', $this->company_id);
+        return $query->where('company_id', session('company_id'));
     }
 }

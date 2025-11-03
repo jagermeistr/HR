@@ -29,7 +29,7 @@ class Edit extends Component
         $this->validate();
         $this->department->save();
         session()->flash('success', 'Department updated successfully.');
-        return $this->redirectRoute('departments.index');
+        return $this->redirectIntended(route('departments.index'),navigate: true);
     }
 
     public function render()

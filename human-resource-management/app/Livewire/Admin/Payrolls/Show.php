@@ -15,6 +15,7 @@ class Show extends Component
     public function mount($id): void
     {
         $this->payroll =  Payroll::find($id);
+        
     }
 
     public function generatePayslips($id): BinaryFileResponse

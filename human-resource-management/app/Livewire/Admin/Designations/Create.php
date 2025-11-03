@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Designations;
 
 use App\Models\Designation;
+use App\Models\Department;
 use Livewire\Component;
 
 class Create extends Component
@@ -23,12 +24,14 @@ class Create extends Component
     public function save(): mixed
     {
         $this->validate();
-        $this->designation->save();
-        session()->flash('success', 'Designation created successfully.');
-        return $this->redirectIntended('designations.index');
+
+    $this->designation->save();
+    session()->flash('success', 'Designation created successfully.');
+    return $this->redirectIntended(route('designations.index'), navigate: true);
     }
     public function render()
     {
-        return view('livewire.admin.designations.create');
+        return view('livewire.admin.designations.create', ['departments'=>Department::inCompany()->get()]);
+
     }
 }

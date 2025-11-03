@@ -26,10 +26,16 @@ class Employee extends Model
     {
         return $this->designation->department;
     }
+    public function scopeInCompany($query):mixed
+    {
+        return $query->whereHas('designation', function ($q):void {
+            $q->inCompany();
+        });
+    }
 
     public function scopeSearchByName($query, $name): mixed
     {
-        return $query->whereas('name', 'like', '%' . $name . '%');
+        return $query->where('name', 'like', '%' . $name . '%');
     }
 
     public function salaries(): HasMany
@@ -51,7 +57,10 @@ class Employee extends Model
     {
         $start_date = $start_date ?? now();
         $end_date = $end_date ?? now();
-        return $this->contracts()->where(column: 'start_date', operator: '<=', value: $start_date)->where(column: 'end_date', operator: '>=', value: $end_date)->first();
+        return $this->contracts()
+            ->where('start_date', '<=', $end_date)
+            ->where('end_date', '>=', $start_date)
+            ->first();
     }
 
 

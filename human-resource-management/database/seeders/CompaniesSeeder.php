@@ -46,7 +46,7 @@ class CompaniesSeeder extends Seeder
         ]);
 
         foreach(Company::all() as $key => $company) {
-            $company->users()->attach(ids: 1); // Attach the first user (admin)
+            $company->users()->attach(ids: 1); // Attach the second user (admin)
         };
     }
 }

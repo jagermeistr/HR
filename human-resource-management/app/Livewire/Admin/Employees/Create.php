@@ -33,7 +33,7 @@ class Create extends Component
         $this->validate();
         $this->employee->save();
         session()->flash('success', 'Employee created successfully.');
-        return $this->redirectIntended('employees.index');
+        return $this->redirectIntended(route('employees.index'), navigate: true);
     }
     public function render()
     {

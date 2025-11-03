@@ -23,9 +23,9 @@ class Designation extends Model
         return $this->hasMany(related: Employee::class);
     }
 
-    public function scopeInCompany($query): mixed
+    public function scopeInCompany($query):mixed
     {
-        return $query->whereas('department', function ($q): void{
+        return $query->whereHas('department', function ($q) {
             $q->inCompany();
         });
     }

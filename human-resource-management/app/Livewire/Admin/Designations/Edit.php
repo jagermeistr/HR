@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Designations;
 
 use Livewire\Component;
 use App\Models\Designation;
+use App\Models\Department;
 
 class Edit extends Component
 {
@@ -25,11 +26,11 @@ class Edit extends Component
         $this->validate();
         $this->designation->save();
         session()->flash('success', 'Designation updated successfully.');
-        return $this->redirectRoute('designations.index');
+        return $this->redirectIntended(route('designations.index'),navigate: true);
     }
 
     public function render()
     {
-        return view('livewire.admin.designations.edit');
+        return view('livewire.admin.designations.edit'  , ['departments'=>Department::inCompany()->get()]);
     }
 }

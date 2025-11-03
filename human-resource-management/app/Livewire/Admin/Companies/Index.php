@@ -14,9 +14,13 @@ class Index extends Component
     public function delete($id): void
     {
         $company= Company::find($id);
-        if ($company->logo){
-            Storage::disk(name: 'public')->delete($company->logo);
+        if ($company) {
+        if ($company->logo) {
+            Storage::disk('public')->delete($company->logo);
         }
+        $company->delete();
+        session()->flash('message', 'Company deleted successfully.');
+    }
     }
     
     public function render()

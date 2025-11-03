@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\NetPayCalculationsService;
 
 class Salary extends Model
 {
@@ -18,5 +19,19 @@ class Salary extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(related: Employee::class);
+    }
+
+    public function getBreakdownAttribute(): NetPayCalculationsService
+    {
+        return new NetPayCalculationsService(gross_salary: $this->gross_salary);
+    }
+
+    public function getDeductionsAttribute(): mixed
+    {
+        return $this->breakdown->getDeductions();
+    }
+    public function getNetPayAttribute()
+    {
+        return $this->breakdown->getNetPay();
     }
 }

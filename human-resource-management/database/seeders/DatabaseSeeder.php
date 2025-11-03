@@ -13,7 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create a default user (admin) to satisfy foreign key constraints
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Admin User',
+        //     'email' => 'admin@example.com',
+        // ]);
 
         $this->call([
             CompaniesSeeder::class,

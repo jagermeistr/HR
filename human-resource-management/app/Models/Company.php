@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Company extends Model
 {
@@ -34,6 +35,13 @@ class Company extends Model
     public function getLogoUrlAttribute(): string
     {
         return $this->logo ? asset(path: 'storage/' . $this->logo): asset(path: 'images/default-logo.png');
+    }
+
+    public function scopeForUser($query): mixed
+    {
+        return $query->whereHas('users', function ($q) {
+            $q->where('id', Auth::user()->id);
+        });
     }
     
 }

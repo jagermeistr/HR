@@ -6,6 +6,8 @@ use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Auth;
+
 
 class Create extends Component
 {
@@ -34,6 +36,7 @@ class Create extends Component
         }
 
         $this->company->save();
+        $this->company->users()->attach(Auth::user()->id);
         session()->flash('success', 'Company created successfully.');
         return $this->redirectIntended(route('companies.index'),navigate: true);
     }

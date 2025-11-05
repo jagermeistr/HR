@@ -21,6 +21,8 @@
                 <flux:navlist.item icon="building-office" :href="route('companies.index')" :current="request()->routeIs('companies.index')" wire:navigate>{{ __('List of Factories') }}</flux:navlist.item>
                 <flux:navlist.item icon="plus" :href="route('companies.create')" :current="request()->routeIs('companies.create')" wire:navigate>{{ __('Create Factory') }}</flux:navlist.item>
             </flux:navlist.group>
+
+            @if (session()->has('company_id'))
             <flux:navlist.group :heading="__('Departments')" class="grid">
                 <flux:navlist.item icon="building-office-2" :href="route('departments.index')" :current="request()->routeIs('departments.index')" wire:navigate>{{ __('List of Departments') }}</flux:navlist.item>
                 <flux:navlist.item icon="plus" :href="route('departments.create')" :current="request()->routeIs('departments.create')" wire:navigate>{{ __('Create Department') }}</flux:navlist.item>
@@ -49,6 +51,7 @@
                 <flux:navlist.item icon="users" :href="route('payrolls.index')" :current="request()->routeIs('payroll.index')" wire:navigate>{{ __('Payrolls') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('payments.index')" :current="request()->routeIs('payment.index')" wire:navigate>{{ __('Payments') }}</flux:navlist.item>
             </flux:navlist.group>
+            @endif
             
 
         </flux:navlist>

@@ -5,8 +5,10 @@ namespace App\Livewire\Admin\Companies;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Company;
+
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class Edit extends Component
 {
@@ -37,10 +39,16 @@ class Edit extends Component
 
         $this->company->save();
         session()->flash('success', 'Company updated successfully.');
-        return $this->redirectIntended(route('companies.index'),navigate: true);
+        return $this->redirectIntended(route('companies.index'), navigate: true);
     }
     public function render()
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user->hasCompany($this->company->id)) {
+            abort(403, 'Unauthorized action.');
+        }
         return view('livewire.admin.companies.edit');
     }
 }

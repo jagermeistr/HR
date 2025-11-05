@@ -39,7 +39,9 @@
                                 <td class="px-4 py-3 text-sm text-gray-400"><span><sup>KSH</sup>{{ number_format($salary->getNetPay(), 2) }}</span></td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center space-x-2">
-                                        <flux:button variant="filled" icon="document-arrow-down" wire:click="generatePayslip({{ $salary->id }})"/>
+                                        <flux:tooltip content="Generate Payslip">
+                                             <flux:button variant="filled" icon="document-arrow-down" wire:click="generatePayslip({{ $salary->id }})"/>
+                                        </flux:tooltip>
                                     </div>
                                 </td>
                             </tr>

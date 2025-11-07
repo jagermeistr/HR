@@ -38,6 +38,6 @@ class Payroll extends Model
 
     public function scopeInCompany($query): mixed
     {
-        return $query->where('company_id', session('company_id'));
+        return $query->where('company_id', $this->company_id);
     }
 }

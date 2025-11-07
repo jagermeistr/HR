@@ -10,7 +10,7 @@
             <flux:input type="month" name="month" wire:model="monthYear" placeholder="Select Month and Year" class="w-full max-w-xs"/> 
         </div>
         <div>
-            <flux:button variant="primary" wire:click="generatePayrolls">Generate Payrolls</flux:button>
+            <flux:button variant="primary" wire:click="generatePayroll">Generate Payrolls</flux:button>
         </div>
     </div>
 
@@ -24,8 +24,7 @@
                     </p>
                 </div>
                 <div class="text-right flex flex-col justify-end text-green-600 dark:text-green-400">
-                    <sup >KES</sup>
-                    <span class="font-bold text-xl dark:text-green-200">{{ number_format($payroll->salaries?->sum('gross_salary')) }}</span>
+                    <span class="font-bold text-xl dark:text-green-200"><sup >KES</sup>{{ number_format($payroll->salaries?->sum('gross_salary')) }}</span>
                 </div>
             </div>
         @endforeach            

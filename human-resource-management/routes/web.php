@@ -42,6 +42,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{id}/edit', Admin\Contracts\Edit::class)->name('edit');
     });
 
+    Route::prefix('productions')->name('productions.')->group(function () {
+    Route::get('/', Admin\Productions\Index::class)->name('index');
+    Route::get('/create', Admin\Productions\Create::class)->name('create');
+});
+
+    Route::prefix('collectioncenters')->name('collectioncenters.')->group(function () {
+        Route::get('/', Admin\CollectionCenters\Index::class)->name('index');
+        Route::get('/create', Admin\CollectionCenters\Create::class)->name('create');
+    });
+
     Route::prefix('payrolls')->name('payrolls.')->group(function () {
         Route::get('/', Admin\Payrolls\Index::class)->name('index');
         Route::get('/{id}/show', Admin\Payrolls\Show::class)->name('show');

@@ -35,13 +35,18 @@
                 <flux:navlist.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.index')" wire:navigate>{{ __('List of Employees') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('employees.create')" :current="request()->routeIs('employees.create')" wire:navigate>{{ __('Create Employee') }}</flux:navlist.item>
             </flux:navlist.group>
-            <flux:navlist.group :heading="__('Farmerss')" class="grid">
+            <flux:navlist.group :heading="__('Farmers')" class="grid">
                 <flux:navlist.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.index')" wire:navigate>{{ __('List of Farmers') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('employees.create')" :current="request()->routeIs('employees.create')" wire:navigate>{{ __('Create Farmers') }}</flux:navlist.item>
             </flux:navlist.group>
-            <flux:navlist.group :heading="__('Production')" class="grid">
-                <flux:navlist.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.index')" wire:navigate>{{ __('Production') }}</flux:navlist.item>
-                <flux:navlist.item icon="users" :href="route('employees.create')" :current="request()->routeIs('employees.create')" wire:navigate>{{ __('Update data') }}</flux:navlist.item>
+            
+            <flux:navlist.group :heading="__('Tea Production')" class="grid">
+                <flux:navlist.item icon="chart-bar" :href="route('productions.index')" :current="request()->routeIs('productions.index')" wire:navigate>{{ __('Production List') }}</flux:navlist.item>
+                <flux:navlist.item icon="chart-bar" :href="route('productions.create')" :current="request()->routeIs('productions.create')" wire:navigate>{{ __('Add Production') }}</flux:navlist.item>
+            </flux:navlist.group>
+            <flux:navlist.group :heading="__('Collection Centers')" class="grid">
+                <flux:navlist.item icon="chart-bar" :href="route('collectioncenters.index')" :current="request()->routeIs('collectioncenters.index')" wire:navigate>{{ __('List of Collection Centers') }}</flux:navlist.item>
+                <flux:navlist.item icon="chart-bar" :href="route('collectioncenters.create')" :current="request()->routeIs('collectioncenters.create')" wire:navigate>{{ __('Add Collection Center') }}</flux:navlist.item>
             </flux:navlist.group>
             <flux:navlist.group :heading="__('Contracts')" class="grid">
                 <flux:navlist.item icon="users" :href="route('contracts.index')" :current="request()->routeIs('contracts.index')" wire:navigate>{{ __('List of Contracts') }}</flux:navlist.item>
@@ -52,7 +57,7 @@
                 <flux:navlist.item icon="users" :href="route('payments.index')" :current="request()->routeIs('payment.index')" wire:navigate>{{ __('Payments') }}</flux:navlist.item>
             </flux:navlist.group>
             @endif
-            
+
 
         </flux:navlist>
 

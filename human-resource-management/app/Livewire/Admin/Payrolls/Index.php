@@ -41,7 +41,7 @@ class Index extends Component
             $payroll->company_id = session('company_id');
             $payroll->save();
             foreach(Employee::inCompany()->get() as $employee) {
-                $contract = $employee->activeContract(start_date: $date->startOfMonth()->toDateString(), end_date: $date->endOfMonth()->toDateString());
+                $contract = $employee->getActiveContract(start_date: $date->startOfMonth()->toDateString(), end_date: $date->endOfMonth()->toDateString());
                 if($contract) {
                     $payroll->salaries()->create([
                         'employee_id' => $employee->id,
@@ -58,7 +58,7 @@ class Index extends Component
         $payroll = Payroll::inCompany()->find($id);
         $payroll->salaries()->delete();
         foreach(Employee::inCompany()->get() as $employee) {
-            $contract = $employee->activeContract(start_date: $payroll->year.'-'.$payroll->month.'-01', end_date: $payroll->year.'-'.$payroll->month.'-'.Carbon::parse($payroll->year.'-'.$payroll->month.'-01')->endOfMonth()->format('d'));
+            $contract = $employee->getActiveContract(start_date: $payroll->year.'-'.$payroll->month.'-01', end_date: $payroll->year.'-'.$payroll->month.'-'.Carbon::parse($payroll->year.'-'.$payroll->month.'-01')->endOfMonth()->format('d'));
             if($contract) {
                 $payroll->salaries()->create([
                     'employee_id' => $employee->id,
@@ -69,10 +69,12 @@ class Index extends Component
         session()->flash('success', 'Payroll updated successfully.');
     }
 
-    public function render()
-    {
-        return view('livewire.admin.payrolls.index', [
-            'payrolls' => Payroll::inCompany()->orderBy('year', 'desc')->orderBy('month', 'desc')->paginate(perPage: 10),
-        ]);
-    }
+   public function render()
+{
+    $payrolls = Payroll::inCompany()->paginate(10);
+
+    return view('livewire.admin.payrolls.index', compact('payrolls'));
+}
+
+    
 }

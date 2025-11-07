@@ -14,7 +14,7 @@ class Show extends Component
     public $payroll;
     public function mount($id): void
     {
-        $this->payroll =  Payroll::find($id);
+        $this->payroll =  Payroll::inCompany()->find($id);
         
     }
 

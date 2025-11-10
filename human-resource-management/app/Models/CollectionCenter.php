@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CollectionCenter extends Model
 {
     protected $fillable = [
-        'company_id',
         'name',
         'location',
         'manager_name',

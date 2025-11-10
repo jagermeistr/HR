@@ -13,10 +13,11 @@ return new class extends Migration
     {
         //
         Schema::create('farmers', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('registration_no')->unique();
-            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+           $table->id();
+            $table->string(column: 'name');
+            $table->string(column: 'email')->unique();
+            $table->string(column: 'phone');
+            $table->string(column: 'address');          
             $table->timestamps();
         });
     }

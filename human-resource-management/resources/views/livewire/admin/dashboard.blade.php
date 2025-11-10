@@ -11,7 +11,7 @@
      
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
-            <span class="text-3xl font-bold text-blue-600">{{ $employeesCount ?? 0 }}</span>
+            <span class="text-3xl font-bold text-blue-600">{{ \App\Models\Employee::count() }}</span>
             <span class="mt-2 text-black font-semibold" style="font-size: 1.1rem;">Employees</span>
         </div>
         <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">

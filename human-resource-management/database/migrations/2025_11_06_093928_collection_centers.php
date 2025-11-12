@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('collection_centers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained();
             $table->string('name');
             $table->string('location')->nullable();
             $table->string('manager_name')->nullable();

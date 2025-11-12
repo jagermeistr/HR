@@ -13,6 +13,7 @@ class CollectionCenter extends Model
         'location',
         'manager_name',
         'contact',
+        'company_id' => 'required|exists:companies,id'
     ];
 
     public function company(): BelongsTo

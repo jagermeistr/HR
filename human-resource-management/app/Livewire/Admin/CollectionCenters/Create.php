@@ -8,6 +8,8 @@ use App\Models\CollectionCenter;
 class Create extends Component
 {
     public $name, $location, $manager_name, $contact;
+    
+
 
     public function render()
     {
@@ -18,10 +20,12 @@ class Create extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'manager_name' => 'required|string|max:255',
+            'contact' => 'required|string|max:255',
         ]);
 
         CollectionCenter::create([
-            'company_id' => session('company_id'),
             'name' => $this->name,
             'location' => $this->location,
             'manager_name' => $this->manager_name,
@@ -32,4 +36,3 @@ class Create extends Component
         $this->reset();
     }
 }
-

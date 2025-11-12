@@ -9,13 +9,10 @@ class Index extends Component
 {
     public function render()
     {
-        $collectionCenters = CollectionCenter::where('company_id', session('company_id'))
-            ->latest()
-            ->get();
+        $collectionCenters = CollectionCenter::latest()->get();
 
         return view('livewire.admin.collectioncenters.index', [
             'collectionCenters' => $collectionCenters
         ]);
     }
 }
-

@@ -47,6 +47,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{id}/edit', Admin\Employees\Edit::class)->name('edit');
         });
 
+        Route::prefix('farmers')->name('farmers.')->group(function () {
+            Route::get('/', Admin\Farmers\Index::class)->name('index');
+            Route::get('/create', Admin\Farmers\Create::class)->name('create');
+            Route::get('/{id}/edit', Admin\Farmers\Edit::class)->name('edit');
+        });
+
         Route::prefix('contracts')->name('contracts.')->group(function () {
             Route::get('/', Admin\Contracts\Index::class)->name('index');
             Route::get('/create', Admin\Contracts\Create::class)->name('create');

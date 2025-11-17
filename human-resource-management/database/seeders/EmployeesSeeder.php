@@ -21,12 +21,12 @@ class EmployeesSeeder extends Seeder
             foreach ($company->departments as $department) {
                 foreach ($department->designations as $key => $designation) {
                     for ($i = 0; $i < 3; $i++) {
-                        Employee::create(attributes: [
+                        Employee::create([
                             'designation_id' => $designation->id,
-                            'name' => $faker->name(),
+                            'name' => $faker->firstName . ' ' . $faker->lastName . ' (Kenyan)',
                             'email' => $faker->unique()->safeEmail(),
-                            'phone' => $faker->phoneNumber(),
-                            'address' => $faker->address(),
+                            'phone' => $faker->numerify('07########'), // Kenyan mobile format
+                            'address' => $faker->city() . ', Kenya',
                         ]);
                     }
                 }

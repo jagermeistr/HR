@@ -56,8 +56,9 @@ class Payroll extends Model
         return Carbon::parse(time: $this->month_year)->format(format: 'F Y');
     }
 
-    public function scopeInCompany($query): mixed
+    public function scopeInCompany($query, $companyId = null): mixed
     {
-        return $query->where('company_id', $this->company_id);
+        $companyId = $companyId ?? session('company_id');
+        return $query->where('company_id', $companyId);
     }
 }

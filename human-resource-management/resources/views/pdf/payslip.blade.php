@@ -79,7 +79,7 @@
                 </table>
         <div class="bg-gray-50 px-6 py-4 text-xs text-gray-500 flex justify-between items-center">
             <span>Generated on {{ date('Y-m-d') }}</span>
-            <span>&copy; {{ date('Y') }} Your Company Name</span>
+            <span>&copy; {{ date('Y') }} {{ getCompany()->name}}</span>
         </div>
     </div>
 </body>

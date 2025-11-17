@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
             DepartmentsSeeder::class,
             EmployeesSeeder::class,
             ContractsSeeder::class,
+            FarmerSeeder::class,
+            CollectionCenterSeeder::class,
+            ProductionRecordSeeder::class,
         ]);
     }
 }

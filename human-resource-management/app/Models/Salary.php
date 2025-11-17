@@ -12,13 +12,18 @@ class Salary extends Model
 
     public function payroll(): BelongsTo
     {
-        return $this->belongsTo(related: Payroll::class);
-
+        return $this->belongsTo(Payroll::class); // Remove "related:"
     }
 
     public function employee(): BelongsTo
     {
-        return $this->belongsTo(related: Employee::class);
+        return $this->belongsTo(Employee::class); // Remove "related:"
+    }
+
+    // Additional accessors for individual deductions
+    public function getNssfAttribute(): float
+    {
+        return $this->breakdown->getNssfDeduction();
     }
 
     public function getBreakdownAttribute(): NetPayCalculationsService
@@ -30,6 +35,7 @@ class Salary extends Model
     {
         return $this->breakdown->getDeductions();
     }
+
     public function getNetPayAttribute()
     {
         return $this->breakdown->getNetPay();

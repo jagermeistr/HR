@@ -17,7 +17,7 @@ class Create extends Component
     {
         return view('livewire.admin.productions.create', [
             'farmers' => Farmer::where('company_id', session('company_id'))->get(),
-            'collectioncenters' => CollectionCenter::where('company_id', session('company_id'))->get(),
+            'collectioncenters' => CollectionCenter::all(),
         ]);
     }
 
@@ -29,7 +29,6 @@ class Create extends Component
         ]);
 
         ProductionRecord::create([
-            'company_id' => session('company_id'),
             'collection_center_id' => $this->collection_center_id,
             'total_kgs' => $this->total_kgs,
             'production_date' => now(),

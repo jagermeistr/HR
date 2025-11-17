@@ -11,14 +11,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Admin\Dashboard::class)->name('dashboard');
-   
-
-
-
-    Route::post('/mpesa/b2c/result', [App\Http\Controllers\MpesaB2CController::class, 'handleResult']);
-    Route::post('/mpesa/b2c/timeout', [App\Http\Controllers\MpesaB2CController::class, 'handleTimeout']);
 
     Route::prefix('companies')->name('companies.')->group(function () {
         Route::get('/', Admin\Companies\Index::class)->name('index');

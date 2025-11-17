@@ -17,7 +17,7 @@ class MpesaB2CController extends Controller
         $this->mpesaB2C = $mpesaB2C;
     }
 
-    public function handleResult(Request $request): JsonResponse
+    public function handleB2CResult(Request $request): JsonResponse
     {
         Log::info('M-Pesa B2C Result Callback', $request->all());
         
@@ -35,7 +35,7 @@ class MpesaB2CController extends Controller
         return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Success']);
     }
 
-    public function handleTimeout(Request $request): JsonResponse
+    public function handleB2CTimeout(Request $request): JsonResponse
     {
         Log::warning('M-Pesa B2C Timeout Callback', $request->all());
         return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Success']);

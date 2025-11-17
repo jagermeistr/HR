@@ -36,10 +36,10 @@
                         </div>
                     </div>
 
-                    <!-- Companies Card -->
+                    <!-- Farmers Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center hover:shadow-md transition-shadow">
-                        <span class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ $companiesCount ?? 0 }}</span>
-                        <span class="mt-2 text-gray-800 dark:text-gray-200 font-semibold text-lg">Companies</span>
+                        <span class="text-3xl font-bold text-green-600 dark:text-green-400">{{ \App\Models\Farmer::count() }}</span>
+                        <span class="mt-2 text-gray-800 dark:text-gray-200 font-semibold text-lg">Farmers</span>
                     </div>
                 </div>
 

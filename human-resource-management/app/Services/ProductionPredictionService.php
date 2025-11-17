@@ -2,183 +2,199 @@
 
 namespace App\Services;
 
-use App\Models\ProductionRecord;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 
 class ProductionPredictionService
 {
-    public function getHistoricalData($days = 365)
-    {
-        return ProductionRecord::select(
-            DB::raw('DATE(production_date) as date'),
-            DB::raw('SUM(total_kgs) as total_kgs')
-        )
-            ->where('production_date', '>=', now()->subDays($days))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-    }
-
-    public function prepareTrainingData($historicalData)
+    /**
+     * Prepares training arrays (dates as ISO strings and numeric values)
+     *
+     * @param \Illuminate\Support\Collection|array $historicalData
+     * @return array
+     */
+    public function prepareTrainingData($historicalData): array
     {
         $dates = [];
         $values = [];
 
         foreach ($historicalData as $record) {
-            $dates[] = $record->date;
-            $values[] = (float) $record->total_kgs;
+            // Ensure we use ISO date strings only
+            $date = Carbon::parse($record->date)->toDateString();
+            $dates[] = $date;
+            $values[] = (float) $record->total ?? (float) $record->total_kgs ?? 0.0;
         }
 
         return [
             'dates' => $dates,
-            'values' => $values
+            'values' => $values,
         ];
     }
 
-    public function generatePredictions($historicalData, $predictionPeriod)
+    /**
+     * Main entry to generate predictions
+     *
+     * @param \Illuminate\Support\Collection $historicalData
+     * @param int $predictionPeriod (days)
+     * @return array
+     */
+    public function generatePredictions($historicalData, int $predictionPeriod = 30): array
     {
-        // Use the existing method that actually works
-        $trainingData = $this->prepareTrainingData($historicalData);
-        
-        if (count($trainingData['values']) >= 7) {
-            return $this->calculateSeasonalPredictions($trainingData, $predictionPeriod);
-        } else {
-            return $this->generateFallbackPredictions($trainingData, $predictionPeriod);
-        }
-    }
+        $training = $this->prepareTrainingData($historicalData);
 
-    // Add the missing methods that are being called
-    private function calculatePrediction($historicalData, $daysAhead): float
-    {
-        $trainingData = $this->prepareTrainingData($historicalData);
-        
-        if (count($trainingData['values']) < 7) {
-            return count($trainingData['values']) > 0 ? end($trainingData['values']) : 0;
+        if (count($training['values']) >= 7) {
+            return $this->calculateSeasonalPredictions($training, $predictionPeriod);
         }
 
-        // Use seasonal prediction logic
-        $seasonalPattern = $this->calculateSeasonalPattern($trainingData['values']);
-        $trend = $this->calculateTrend($trainingData['values']);
-        $lastValue = end($trainingData['values']);
-
-        $seasonalIndex = ($daysAhead - 1) % count($seasonalPattern);
-        $seasonalEffect = $seasonalPattern[$seasonalIndex];
-
-        $predictedValue = $lastValue + ($trend * $daysAhead) + $seasonalEffect;
-        return max(0, round($predictedValue, 2));
+        return $this->generateFallbackPredictions($training, $predictionPeriod);
     }
 
-    private function calculateConfidence(int $daysAhead, int $totalPredictionPeriod): float
-    {
-        // Confidence decreases as we predict further into the future
-        $baseConfidence = 0.85; // 85% confidence for first day
-        
-        // Linear decrease in confidence
-        $confidenceDecrease = (1 - $baseConfidence) / $totalPredictionPeriod;
-        
-        $confidence = $baseConfidence - ($confidenceDecrease * ($daysAhead - 1));
-        
-        // Ensure confidence doesn't go below a minimum
-        return max(0.5, $confidence);
-    }
-
-    private function calculateSeasonalPredictions($data, $periods)
+    /**
+     * Seasonal + trend simple predictor (not full SARIMA, but robust)
+     *
+     * @param array $data (dates & values)
+     * @param int $periods
+     * @return array
+     */
+    private function calculateSeasonalPredictions(array $data, int $periods): array
     {
         $values = $data['values'];
-        $lastDate = end($data['dates']);
+        $dates = $data['dates'];
         $predictions = [];
 
-        // Simple seasonal average based prediction
         $seasonalPattern = $this->calculateSeasonalPattern($values);
         $trend = $this->calculateTrend($values);
-
-        $lastValue = end($values);
+        $lastValue = end($values) ?: 0.0;
+        $lastDate = end($dates) ?: Carbon::now()->toDateString();
 
         for ($i = 1; $i <= $periods; $i++) {
             $seasonalIndex = ($i - 1) % count($seasonalPattern);
-            $seasonalEffect = $seasonalPattern[$seasonalIndex];
-
+            $seasonalEffect = $seasonalPattern[$seasonalIndex] ?? 0;
             $predictedValue = $lastValue + ($trend * $i) + $seasonalEffect;
-            $predictedValue = max(0, $predictedValue); // Ensure non-negative
+            $predictedValue = max(0, round($predictedValue, 2));
 
             $predictions[] = [
-                'date' => date('Y-m-d', strtotime($lastDate . " +{$i} days")),
-                'predicted_kgs' => round($predictedValue, 2),
-                'confidence' => $this->calculateConfidence($i, $periods)
+                'date' => Carbon::parse($lastDate)->addDays($i)->toDateString(), // ISO Y-m-d
+                'predicted_kgs' => $predictedValue,
+                'confidence' => round($this->calculateConfidence($i, $periods), 3) // 0..1
             ];
         }
 
         return $predictions;
     }
 
-    private function calculateSeasonalPattern($values, $seasonLength = 7)
+    /**
+     * Build a weekly seasonal pattern (default 7-day season)
+     *
+     * @param array $values
+     * @param int $seasonLength
+     * @return array
+     */
+    private function calculateSeasonalPattern(array $values, int $seasonLength = 7): array
     {
         if (count($values) < $seasonLength) {
-            return array_fill(0, $seasonLength, 0);
+            return array_fill(0, $seasonLength, 0.0);
         }
 
-        $pattern = array_fill(0, $seasonLength, 0);
+        $pattern = array_fill(0, $seasonLength, 0.0);
         $counts = array_fill(0, $seasonLength, 0);
 
-        foreach ($values as $index => $value) {
-            $pattern[$index % $seasonLength] += $value;
-            $counts[$index % $seasonLength]++;
+        foreach ($values as $idx => $val) {
+            $slot = $idx % $seasonLength;
+            $pattern[$slot] += $val;
+            $counts[$slot]++;
         }
 
-        // Calculate averages
         for ($i = 0; $i < $seasonLength; $i++) {
             if ($counts[$i] > 0) {
                 $pattern[$i] = $pattern[$i] / $counts[$i];
+            } else {
+                $pattern[$i] = 0.0;
             }
         }
 
-        // Normalize pattern
-        $overallAverage = array_sum($pattern) / $seasonLength;
-
+        // Normalize to average effect (differences from overall mean)
+        $overallAvg = array_sum($pattern) / $seasonLength;
         for ($i = 0; $i < $seasonLength; $i++) {
-            $pattern[$i] = $pattern[$i] - $overallAverage;
+            $pattern[$i] = round($pattern[$i] - $overallAvg, 4);
         }
 
         return $pattern;
     }
 
-    private function calculateTrend($values)
+    /**
+     * Simple linear trend (slope) using least squares
+     *
+     * @param array $values
+     * @return float
+     */
+    private function calculateTrend(array $values): float
     {
-        if (count($values) < 2) {
-            return 0;
+        $n = count($values);
+        if ($n < 2) {
+            return 0.0;
         }
 
-        $n = count($values);
         $sumX = 0;
         $sumY = 0;
         $sumXY = 0;
         $sumX2 = 0;
 
-        foreach ($values as $index => $value) {
-            $sumX += $index;
-            $sumY += $value;
-            $sumXY += $index * $value;
-            $sumX2 += $index * $index;
+        foreach ($values as $i => $y) {
+            $x = $i + 1; // avoid zero-index for numerical stability
+            $sumX += $x;
+            $sumY += $y;
+            $sumXY += $x * $y;
+            $sumX2 += $x * $x;
         }
 
-        $slope = ($n * $sumXY - $sumX * $sumY) / ($n * $sumX2 - $sumX * $sumX);
+        $den = ($n * $sumX2 - $sumX * $sumX);
+        if ($den == 0) {
+            return 0.0;
+        }
 
-        return $slope;
+        $slope = ($n * $sumXY - $sumX * $sumY) / $den;
+
+        // slope per day
+        return (float) $slope;
     }
 
-    private function generateFallbackPredictions($data, $periods)
+    /**
+     * Confidence decays with horizon; returns 0..1
+     *
+     * @param int $daysAhead
+     * @param int $totalPredictionPeriod
+     * @return float
+     */
+    private function calculateConfidence(int $daysAhead, int $totalPredictionPeriod): float
     {
-        $lastValue = count($data['values']) > 0 ? end($data['values']) : 0;
-        $lastDate = count($data['dates']) > 0 ? end($data['dates']) : date('Y-m-d');
+        $baseConfidence = 0.85; // day 1
+        $minConfidence = 0.5;   // floor
+        if ($totalPredictionPeriod <= 1) {
+            return $baseConfidence;
+        }
+
+        $decayPerDay = ($baseConfidence - $minConfidence) / $totalPredictionPeriod;
+        $confidence = $baseConfidence - ($decayPerDay * ($daysAhead - 1));
+        return max($minConfidence, round($confidence, 3));
+    }
+
+    /**
+     * Fallback predictions (repeat last observed value)
+     *
+     * @param array $data
+     * @param int $periods
+     * @return array
+     */
+    private function generateFallbackPredictions(array $data, int $periods): array
+    {
+        $lastValue = !empty($data['values']) ? end($data['values']) : 0.0;
+        $lastDate = !empty($data['dates']) ? end($data['dates']) : Carbon::now()->toDateString();
 
         $predictions = [];
-
         for ($i = 1; $i <= $periods; $i++) {
             $predictions[] = [
-                'date' => date('Y-m-d', strtotime($lastDate . " +{$i} days")),
-                'predicted_kgs' => $lastValue,
+                'date' => Carbon::parse($lastDate)->addDays($i)->toDateString(),
+                'predicted_kgs' => round($lastValue, 2),
                 'confidence' => 0.5
             ];
         }

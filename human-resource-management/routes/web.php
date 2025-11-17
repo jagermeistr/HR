@@ -75,6 +75,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+// M-Pesa B2C Callback Routes (exclude from web middleware)
+Route::withoutMiddleware(['web'])->group(function () {
+    Route::post('/mpesa/b2c/result', [App\Http\Controllers\MpesaB2CController::class, 'handleB2CResult']);
+    Route::post('/mpesa/b2c/timeout', [App\Http\Controllers\MpesaB2CController::class, 'handleB2CTimeout']);
+    Route::post('/mpesa/b2c/queue-timeout', [App\Http\Controllers\MpesaB2CController::class, 'handleQueueTimeout']);
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

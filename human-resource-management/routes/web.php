@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
+
     Route::middleware(('company.context'))->group(function () {
         Route::prefix('departments')->name('departments.')->group(function () {
             Route::get('/', Admin\Departments\Index::class)->name('index');
@@ -47,6 +48,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/create', Admin\Farmers\Create::class)->name('create');
             Route::get('/{id}/edit', Admin\Farmers\Edit::class)->name('edit');
         });
+
+        
+
+        Route::prefix('feedback')->name('feedback.')->group(function () {
+            Route::get('/', Admin\Feedback\Index::class)->name('index');
+            Route::get('/create', Admin\Feedback\Create::class)->name('create');
+            Route::get('/{feedback}', Admin\Feedback\Show::class)->name('show');
+        });
+
 
         Route::prefix('contracts')->name('contracts.')->group(function () {
             Route::get('/', Admin\Contracts\Index::class)->name('index');

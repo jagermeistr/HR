@@ -26,6 +26,14 @@ class Employee extends Model
     {
         return $this->designation->department;
     }
+
+     // Rename this to avoid conflict with Eloquent expectations
+    public function getDepartmentAttribute()
+    {
+        return $this->designation->department ?? null;
+    }
+
+    
     public function scopeInCompany($query):mixed
     {
         return $query->whereHas('designation', function ($q):void {

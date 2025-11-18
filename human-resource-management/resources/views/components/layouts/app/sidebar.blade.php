@@ -39,7 +39,10 @@
                 <flux:navlist.item icon="users" :href="route('farmers.index')" :current="request()->routeIs('farmers.index')" wire:navigate>{{ __('List of Farmers') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('farmers.create')" :current="request()->routeIs('farmers.create')" wire:navigate>{{ __('Create Farmers') }}</flux:navlist.item>
             </flux:navlist.group>
-            
+            <flux:navlist.group :heading="__('Feedback')" class="grid">
+                <flux:navlist.item icon="users" :href="route('feedback.index')" :current="request()->routeIs('feedback.index')" wire:navigate>{{ __('List of Feedback') }}</flux:navlist.item>
+                <flux:navlist.item icon="users" :href="route('feedback.create')" :current="request()->routeIs('feedback.create')" wire:navigate>{{ __('Create Feedback') }}</flux:navlist.item>
+            </flux:navlist.group>
             <flux:navlist.group :heading="__('Tea Production')" class="grid">
                 <flux:navlist.item icon="chart-bar" :href="route('productions.index')" :current="request()->routeIs('productions.index')" wire:navigate>{{ __('Production List') }}</flux:navlist.item>
                 <flux:navlist.item icon="chart-bar" :href="route('productions.create')" :current="request()->routeIs('productions.create')" wire:navigate>{{ __('Add Production') }}</flux:navlist.item>

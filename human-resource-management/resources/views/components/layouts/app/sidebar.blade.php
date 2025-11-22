@@ -43,6 +43,15 @@
                 <flux:navlist.item icon="users" :href="route('feedback.index')" :current="request()->routeIs('feedback.index')" wire:navigate>{{ __('List of Feedback') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('feedback.create')" :current="request()->routeIs('feedback.create')" wire:navigate>{{ __('Create Feedback') }}</flux:navlist.item>
             </flux:navlist.group>
+            <flux:navlist.group :heading="__('Leave Management')" class="grid">
+                <flux:navlist.item icon="calendar" :href="route('leave.index')" :current="request()->routeIs('leave.index')" wire:navigate>{{ __('Manage Leaves') }}</flux:navlist.item>
+                <flux:navlist.item icon="plus" :href="route('leave.create')" :current="request()->routeIs('leave.create')" wire:navigate>{{ __('Create Leave') }}</flux:navlist.item>
+            </flux:navlist.group>
+            <flux:navlist.group :heading="__('Attendance')" class="grid">
+                <flux:navlist.item icon="clock" :href="route('attendance.index')" :current="request()->routeIs('attendance.index')" wire:navigate>{{ __('Attendance Tracking') }}</flux:navlist.item>
+                <flux:navlist.item icon="clock" :href="route('attendance.history')" :current="request()->routeIs('attendance.history')" wire:navigate>{{ __('Attendance History') }}</flux:navlist.item>
+            </flux:navlist.group>
+
             <flux:navlist.group :heading="__('Tea Production')" class="grid">
                 <flux:navlist.item icon="chart-bar" :href="route('productions.index')" :current="request()->routeIs('productions.index')" wire:navigate>{{ __('Production List') }}</flux:navlist.item>
                 <flux:navlist.item icon="chart-bar" :href="route('productions.create')" :current="request()->routeIs('productions.create')" wire:navigate>{{ __('Add Production') }}</flux:navlist.item>

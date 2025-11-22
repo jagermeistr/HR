@@ -71,5 +71,38 @@ class Employee extends Model
             ->first();
     }
 
+     public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    // Get weekly hours worked
+    public function getWeeklyHoursAttribute(): float
+    {
+        return $this->attendances()
+            ->whereBetween('date', [
+                now()->startOfWeek(),
+                now()->endOfWeek()
+            ])
+            ->sum('hours_worked');
+    }
+
+    // Check if employee is at burnout risk
+    public function getIsBurnoutRiskAttribute(): bool
+    {
+        return $this->weekly_hours > 40;
+    }
+
+    // Get today's attendance
+    public function getTodayAttendanceAttribute()
+    {
+        return $this->attendances()->whereDate('date', today())->first();
+    }
+
 
 }

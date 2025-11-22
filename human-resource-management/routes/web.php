@@ -49,12 +49,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{id}/edit', Admin\Farmers\Edit::class)->name('edit');
         });
 
-        
+
 
         Route::prefix('feedback')->name('feedback.')->group(function () {
             Route::get('/', Admin\Feedback\Index::class)->name('index');
             Route::get('/create', Admin\Feedback\Create::class)->name('create');
             Route::get('/{feedback}', Admin\Feedback\Show::class)->name('show');
+        });
+
+        Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/', Admin\Attendance\Index::class)->name('index');
+            Route::get('/history', Admin\Attendance\History::class)->name('history'); 
+        });
+
+        Route::prefix('leave')->name('leave.')->group(function () {
+            Route::get('/', \App\Livewire\Admin\Leave\Index::class)->name('index');
+            Route::get('/create', \App\Livewire\Admin\Leave\Create::class)->name('create');
+            Route::get('/{leaveRequest}/edit', \App\Livewire\Admin\Leave\Edit::class)->name('edit');
         });
 
 

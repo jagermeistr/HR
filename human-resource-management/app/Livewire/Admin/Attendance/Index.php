@@ -32,7 +32,7 @@ class Index extends Component
 
             if (!$attendance->check_in) {
                 $attendance->fill([
-                    'check_in' => now()->toTimeString(), // Use toTimeString() for proper time format
+                    'check_in' => now()->toTimeString(),
                     'status' => 'present'
                 ])->save();
 
@@ -52,7 +52,7 @@ class Index extends Component
 
             if ($attendance && $attendance->check_in && !$attendance->check_out) {
                 $attendance->update([
-                    'check_out' => now()->toTimeString() // Use toTimeString() for proper time format
+                    'check_out' => now()->toTimeString()
                 ]);
 
                 // Calculate hours worked
@@ -69,6 +69,68 @@ class Index extends Component
             }
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to record check-out: ' . $e->getMessage());
+        }
+    }
+
+    // Add the missing markAbsent method
+    public function markAbsent($employeeId)
+    {
+        try {
+            $attendance = Attendance::firstOrNew([
+                'employee_id' => $employeeId,
+                'date' => $this->selectedDate,
+            ]);
+
+            // Only mark as absent if no check-in has been recorded
+            if (!$attendance->check_in) {
+                $attendance->fill([
+                    'status' => 'absent',
+                    'check_in' => null,
+                    'check_out' => null,
+                    'hours_worked' => 0,
+                    'overtime' => false
+                ])->save();
+
+                session()->flash('success', 'Employee marked as absent successfully.');
+            } else {
+                session()->flash('error', 'Cannot mark as absent - check-in already recorded.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to mark as absent: ' . $e->getMessage());
+        }
+    }
+
+    // Optional: Add method to mark as present if needed
+    public function markPresent($employeeId)
+    {
+        try {
+            $attendance = Attendance::firstOrNew([
+                'employee_id' => $employeeId,
+                'date' => $this->selectedDate,
+            ]);
+
+            $attendance->fill([
+                'status' => 'present',
+                // Note: This doesn't set check-in time, just marks as present
+            ])->save();
+
+            session()->flash('success', 'Employee marked as present successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to mark as present: ' . $e->getMessage());
+        }
+    }
+
+    // Optional: Add method to remove attendance record
+    public function clearAttendance($employeeId)
+    {
+        try {
+            Attendance::where('employee_id', $employeeId)
+                ->whereDate('date', $this->selectedDate)
+                ->delete();
+
+            session()->flash('success', 'Attendance record cleared successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to clear attendance: ' . $e->getMessage());
         }
     }
 

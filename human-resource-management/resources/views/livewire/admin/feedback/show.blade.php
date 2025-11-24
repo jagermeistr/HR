@@ -1,5 +1,6 @@
 <div>
-    
+    <!-- Use your app layout -->
+    <x-app-layout>
         <x-slot name="header">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Feedback Details') }}
@@ -19,9 +20,9 @@
 
                         <!-- Back Button -->
                         <div class="mb-6">
-                            <x-flux::button :href="route('feedback.index')" variant="outline" icon="arrow-left" wire:navigate>
-                                Back to Feedback
-                            </x-flux::button>
+                            <a href="{{ route('feedback.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                ← Back to Feedback
+                            </a>
                         </div>
 
                         <!-- Feedback Details -->
@@ -32,13 +33,21 @@
                                     <p class="mt-1 text-lg">
                                         {{ $feedback->is_anonymous ? 'Anonymous' : $feedback->sender->name }}
                                         @if($feedback->is_anonymous)
-                                            <x-heroicon-s-user-circle class="w-5 h-5 text-gray-400 inline ml-1" />
+                                            <svg class="w-5 h-5 text-gray-400 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
                                         @endif
                                     </p>
                                 </div>
                                 <div>
                                     <label class="text-sm font-medium text-gray-500 dark:text-gray-400">To</label>
-                                    <p class="mt-1 text-lg">{{ $feedback->receiver->name }}</p>
+                                    <p class="mt-1 text-lg">
+                                        @if($feedback->employee)
+                                            {{ $feedback->employee->name }}
+                                        @else
+                                            Employee Not Found
+                                        @endif
+                                    </p>
                                 </div>
                                 <div>
                                     <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</label>
@@ -61,15 +70,19 @@
 
                             <!-- Timestamp -->
                             <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                                <x-heroicon-s-clock class="w-4 h-4 inline mr-1" />
-                                Sent: {{ $feedback->sent_at->format('F j, Y \\a\\t g:i A') }}
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Sent: {{ $feedback->created_at->format('F j, Y \\a\\t g:i A') }}
                             </div>
                         </div>
 
                         <!-- Responses Section -->
                         <div>
                             <h3 class="text-xl font-semibold mb-4 flex items-center">
-                                <x-heroicon-s-chat-bubble-left-right class="w-6 h-6 mr-2" />
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
                                 Responses
                                 <span class="ml-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-sm">
                                     {{ $feedback->responses->count() }}
@@ -79,9 +92,9 @@
                             <!-- Responses List -->
                             <div class="space-y-4 mb-6">
                                 @foreach($feedback->responses as $response)
-                                    <div class="border-l-4 border-primary-500 pl-4 py-2">
+                                    <div class="border-l-4 border-blue-500 pl-4 py-2">
                                         <div class="flex justify-between items-start mb-2">
-                                            <strong class="text-primary-600 dark:text-primary-400">
+                                            <strong class="text-blue-600 dark:text-blue-400">
                                                 {{ $response->user->name }}
                                             </strong>
                                             <span class="text-sm text-gray-500 dark:text-gray-400">
@@ -94,30 +107,36 @@
 
                                 @if($feedback->responses->isEmpty())
                                     <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        <x-heroicon-s-chat-bubble-left-right class="w-12 h-12 mx-auto mb-3" />
+                                        <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
                                         <p>No responses yet.</p>
                                     </div>
                                 @endif
                             </div>
 
                             <!-- Add Response Form -->
-                            @if($feedback->canRespond(Auth::user()))
+                            @if(auth()->check())
                                 <form wire:submit="addResponse">
-                                    <flux:input.group label="Your Response" required>
-                                        <flux:input.textarea 
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Your Response *
+                                        </label>
+                                        <textarea 
                                             wire:model="response" 
-                                            rows="4" 
+                                            rows="4"
+                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 @error('response') border-red-500 @enderror"
                                             placeholder="Share your thoughts or acknowledge the feedback..."
-                                        />
+                                        ></textarea>
                                         @error('response')
-                                            <flux:input.error>{{ $message }}</flux:input.error>
+                                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                         @enderror
-                                    </flux:input.group>
+                                    </div>
 
-                                    <div class="flex justify-end mt-4">
-                                        <x-flux::button type="submit" icon="paper-airplane" variant="primary">
+                                    <div class="flex justify-end">
+                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                                             Submit Response
-                                        </x-flux::button>
+                                        </button>
                                     </div>
                                 </form>
                             @endif
@@ -126,5 +145,5 @@
                 </div>
             </div>
         </div>
-    
+    </x-app-layout>
 </div>

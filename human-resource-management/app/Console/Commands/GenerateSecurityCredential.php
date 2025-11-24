@@ -14,7 +14,7 @@ class GenerateSecurityCredential extends Command
     {
         $this->info('M-Pesa Security Credential Generator');
         
-        $password = $this->secret('Enter initiator password (sandbox: Safaricom999!*!)');
+        $password = $this->secret('Enter initiator password (sandbox: Safaricom123!!)');
         
         if (empty($password)) {
             $this->error('Password cannot be empty');

@@ -62,9 +62,15 @@ class Index extends Component
             if ($response['success']) {
                 $payment = $this->createPaymentRecord($employee, 'mpesa', 'processing');
 
+                // Save the COMPLETE M-Pesa response with Conversation IDs
                 $payment->update([
                     'transaction_id' => $response['data']['TransactionID'] ?? null,
-                    'mpesa_response' => $response['data']
+                    'mpesa_response' => [
+                        'initial_response' => $response['data'],
+                        'ConversationID' => $response['data']['ConversationID'] ?? null,
+                        'OriginatorConversationID' => $response['data']['OriginatorConversationID'] ?? null,
+                        'request_sent_at' => now()->toDateTimeString()
+                    ]
                 ]);
 
                 session()->flash('message', 'M-Pesa payment initiated successfully! Status will update automatically.');

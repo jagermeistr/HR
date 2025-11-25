@@ -3,10 +3,10 @@
 namespace App\Livewire\Admin\Attendance;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Employee;
 use App\Models\Attendance;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\DB;
+use App\Models\CompanySetting;
 use Carbon\Carbon;
 
 class Index extends Component
@@ -16,155 +16,282 @@ class Index extends Component
     public $selectedDate;
     public $search = '';
     public $burnoutFilter = false;
+    public $exportEmployees;
+    public $burnoutEmployees = 0; // ADD THIS
+
+    // ADD THESE SETTINGS PROPERTIES
+    public $showSettings = false;
+    public $lateThreshold;
+    public $regularHours;
+    public $burnoutThreshold;
+    public $workStartTime;
+    public $workEndTime;
+
+    protected $rules = [
+        'selectedDate' => 'required|date|before_or_equal:today',
+    ];
 
     public function mount()
     {
         $this->selectedDate = today()->format('Y-m-d');
+
+        $this->exportEmployees = Employee::active()
+            ->orderBy('name')
+            ->select('id', 'name', 'employee_id')
+            ->get();
+
+        $this->calculateBurnoutEmployees(); // ADD THIS
+        $this->loadSettings(); // ADD THIS
     }
+
+    // ADD THIS METHOD
+    public function calculateBurnoutEmployees()
+    {
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        
+        $this->burnoutEmployees = Employee::whereHas('attendances', function ($query) use ($startOfWeek, $endOfWeek) {
+            $query->whereBetween('date', [$startOfWeek, $endOfWeek])
+                  ->where('is_burnout_risk', true);
+        })->distinct()->count();
+    }
+
+    // ADD THIS METHOD
+    public function loadSettings()
+    {
+        $settings = CompanySetting::first();
+        if ($settings) {
+            $this->lateThreshold = $settings->late_threshold->format('H:i:s');
+            $this->regularHours = $settings->regular_hours;
+            $this->burnoutThreshold = $settings->burnout_threshold;
+            $this->workStartTime = $settings->work_start_time->format('H:i:s');
+            $this->workEndTime = $settings->work_end_time->format('H:i:s');
+        }
+    }
+
+    public function updated($property)
+    {
+        if ($property === 'selectedDate') {
+            $this->validateOnly('selectedDate');
+            $this->resetPage();
+        }
+    }
+
+    /* ---------------------------------------------------------
+     | ATTENDANCE OPERATIONS - THESE ARE CORRECT
+     * --------------------------------------------------------- */
+
+      public function updatedBurnoutFilter()
+    {
+        $this->resetPage();
+    }
+
+
 
     public function checkIn($employeeId)
     {
         try {
-            $attendance = Attendance::firstOrNew([
-                'employee_id' => $employeeId,
-                'date' => $this->selectedDate,
-            ]);
+            $this->validate();
+            $employee = Employee::find($employeeId);
+            if (!$employee) {
+                session()->flash('error', 'Employee not found.');
+                return;
+            }
+
+            if (Carbon::parse($this->selectedDate)->isFuture()) {
+                session()->flash('error', 'Cannot check-in for future dates.');
+                return;
+            }
+
+            $attendance = Attendance::firstOrCreate(
+                [
+                    'employee_id' => $employeeId,
+                    'date' => $this->selectedDate,
+                ],
+                [
+                    'status' => 'present'
+                ]
+            );
 
             if (!$attendance->check_in) {
-                $attendance->fill([
-                    'check_in' => now()->toTimeString(),
+                $attendance->update([
+                    'check_in' => now(),
                     'status' => 'present'
-                ])->save();
+                ]);
 
-                session()->flash('success', 'Check-in recorded successfully at ' . now()->format('h:i A'));
+                $attendance->checkLateArrival();
+                
+                session()->flash('success', 'Check-in recorded successfully for ' . $employee->name . '.');
+            } else {
+                session()->flash('error', 'Check-in already recorded for today.');
             }
+
+            // UPDATE BURNOUT COUNT
+            $this->calculateBurnoutEmployees();
+
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to record check-in: ' . $e->getMessage());
         }
     }
 
+    
+
     public function checkOut($employeeId)
     {
         try {
+            $this->validate();
+            $employee = Employee::find($employeeId);
+            if (!$employee) {
+                session()->flash('error', 'Employee not found.');
+                return;
+            }
+
             $attendance = Attendance::where('employee_id', $employeeId)
                 ->whereDate('date', $this->selectedDate)
                 ->first();
 
-            if ($attendance && $attendance->check_in && !$attendance->check_out) {
+            if (!$attendance) {
+                session()->flash('error', 'No attendance record found for today.');
+                return;
+            }
+
+            if ($attendance->check_in && !$attendance->check_out) {
+                if (now()->lte($attendance->check_in)) {
+                    session()->flash('error', 'Check-out time must be after check-in time.');
+                    return;
+                }
+
                 $attendance->update([
-                    'check_out' => now()->toTimeString()
+                    'check_out' => now()
                 ]);
 
-                // Calculate hours worked
-                $checkIn = Carbon::parse($attendance->check_in);
-                $checkOut = Carbon::parse($attendance->check_out);
-                $hours = $checkOut->diffInMinutes($checkIn) / 60;
+                $attendance->calculateHoursWorked();
 
-                $attendance->update([
-                    'hours_worked' => round($hours, 2),
-                    'overtime' => $hours > 8
-                ]);
+                session()->flash('success', 'Check-out recorded successfully for ' . $employee->name . '.');
 
-                session()->flash('success', 'Check-out recorded successfully at ' . now()->format('h:i A'));
+                // UPDATE BURNOUT COUNT
+                $this->calculateBurnoutEmployees();
+                
+            } elseif ($attendance->check_out) {
+                session()->flash('error', 'Check-out already recorded for today.');
+            } else {
+                session()->flash('error', 'No check-in found to check out from.');
             }
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to record check-out: ' . $e->getMessage());
         }
     }
 
-    // Add the missing markAbsent method
     public function markAbsent($employeeId)
     {
         try {
-            $attendance = Attendance::firstOrNew([
-                'employee_id' => $employeeId,
-                'date' => $this->selectedDate,
-            ]);
+            $this->validate();
+            $employee = Employee::find($employeeId);
+            if (!$employee) {
+                session()->flash('error', 'Employee not found.');
+                return;
+            }
 
-            // Only mark as absent if no check-in has been recorded
-            if (!$attendance->check_in) {
-                $attendance->fill([
+            $attendance = Attendance::updateOrCreate(
+                [
+                    'employee_id' => $employeeId,
+                    'date' => $this->selectedDate,
+                ],
+                [
                     'status' => 'absent',
                     'check_in' => null,
                     'check_out' => null,
                     'hours_worked' => 0,
-                    'overtime' => false
-                ])->save();
+                    'overtime' => false,
+                    'overtime_hours' => 0,
+                    'is_late' => false,
+                    'is_burnout_risk' => false,
+                    'weekly_hours' => 0,
+                    'burnout_level' => 'Safe'
+                ]
+            );
 
-                session()->flash('success', 'Employee marked as absent successfully.');
-            } else {
-                session()->flash('error', 'Cannot mark as absent - check-in already recorded.');
-            }
+            // UPDATE BURNOUT STATUS FOR THE WEEK
+            $attendance->updateBurnoutStatus();
+            $this->calculateBurnoutEmployees();
+
+            session()->flash('success', $employee->name . ' marked as absent.');
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to mark as absent: ' . $e->getMessage());
         }
     }
 
-    // Optional: Add method to mark as present if needed
-    public function markPresent($employeeId)
+
+    public function saveSettings()
     {
-        try {
-            $attendance = Attendance::firstOrNew([
-                'employee_id' => $employeeId,
-                'date' => $this->selectedDate,
-            ]);
+        $this->validate([
+            'lateThreshold' => 'required',
+            'regularHours' => 'required|numeric|min:1|max:24',
+            'burnoutThreshold' => 'required|numeric|min:1|max:168',
+            'workStartTime' => 'required',
+            'workEndTime' => 'required',
+        ]);
 
-            $attendance->fill([
-                'status' => 'present',
-                // Note: This doesn't set check-in time, just marks as present
-            ])->save();
+        CompanySetting::updateOrCreate([], [
+            'late_threshold' => $this->lateThreshold,
+            'regular_hours' => $this->regularHours,
+            'burnout_threshold' => $this->burnoutThreshold,
+            'work_start_time' => $this->workStartTime,
+            'work_end_time' => $this->workEndTime,
+        ]);
 
-            session()->flash('success', 'Employee marked as present successfully.');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Failed to mark as present: ' . $e->getMessage());
-        }
+        $this->showSettings = false;
+        session()->flash('success', 'Settings updated successfully!');
+        
+        // RECALCULATE BURNOUT STATUS FOR ALL EMPLOYEES WITH NEW THRESHOLD
+        $this->recalculateAllBurnoutStatus();
+        $this->calculateBurnoutEmployees();
     }
 
-    // Optional: Add method to remove attendance record
-    public function clearAttendance($employeeId)
+    // ADD THIS METHOD TO RECALCULATE ALL BURNOUT STATUS
+    private function recalculateAllBurnoutStatus()
     {
-        try {
-            Attendance::where('employee_id', $employeeId)
-                ->whereDate('date', $this->selectedDate)
-                ->delete();
+        $attendances = Attendance::whereNotNull('check_out')
+            ->whereNotNull('check_in')
+            ->get();
 
-            session()->flash('success', 'Attendance record cleared successfully.');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Failed to clear attendance: ' . $e->getMessage());
+        foreach ($attendances as $attendance) {
+            $attendance->updateBurnoutStatus();
         }
     }
 
     public function render()
     {
-        $employees = Employee::inCompany()
-            ->with(['designation.department', 'attendances' => function ($query) {
-                $query->whereDate('date', $this->selectedDate);
-            }])
+        $employees = Employee::with([
+                'designation:id,name,department_id',
+                'designation.department:id,name',
+                'attendances' => fn ($q) =>
+                    $q->whereDate('date', $this->selectedDate)
+            ])
             ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->burnoutFilter, function ($query) {
-                $query->whereHas('attendances', function ($q) {
-                    $q->select('employee_id')
-                        ->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
-                        ->groupBy('employee_id')
-                        ->havingRaw('SUM(hours_worked) > 40');
+                $query->where(function ($q) {
+                    $q->where('name', 'like', "%{$this->search}%")
+                      ->orWhere('employee_id', 'like', "%{$this->search}%");
                 });
             })
+            ->when($this->burnoutFilter, function ($query) {
+                $query->whereHas('attendances', fn ($q) =>
+                    $q->where('is_burnout_risk', true)
+                       ->whereBetween('date', [
+                           Carbon::now()->startOfWeek(),
+                           Carbon::now()->endOfWeek()
+                       ])
+                );
+            })
+            ->orderBy('name')
             ->paginate(10);
 
-        // Calculate burnout risks count for current company only
-        $burnoutEmployees = Employee::inCompany()
-            ->whereHas('attendances', function ($query) {
-                $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()])
-                    ->groupBy('employee_id')
-                    ->havingRaw('SUM(hours_worked) > 40');
-            })
-            ->count();
+        $settings = CompanySetting::first();
 
         return view('livewire.admin.attendance.index', [
-            'employees' => $employees,
-            'burnoutEmployees' => $burnoutEmployees
+            'employees'       => $employees,
+            'settings'        => $settings,
+            'exportEmployees' => $this->exportEmployees,
         ]);
     }
 }

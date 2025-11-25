@@ -22,6 +22,7 @@ class EmployeesSeeder extends Seeder
                 foreach ($department->designations as $key => $designation) {
                     for ($i = 0; $i < 3; $i++) {
                         Employee::create([
+                            'company_id' => $company->id, // ADD THIS LINE
                             'designation_id' => $designation->id,
                             'name' => $faker->firstName . ' ' . $faker->lastName . ' (Kenyan)',
                             'email' => $faker->unique()->safeEmail(),

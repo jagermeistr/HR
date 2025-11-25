@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('feedback', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->text('message');
             $table->enum('type', ['positive', 'constructive', 'general']);
             $table->boolean('is_anonymous')->default(false);
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
             
-            $table->index(['receiver_id', 'status']);
+            $table->index(['employee_id', 'status']);
             $table->index(['sender_id', 'created_at']);
         });
     }

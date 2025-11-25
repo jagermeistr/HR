@@ -50,6 +50,7 @@
             <flux:navlist.group :heading="__('Attendance')" class="grid">
                 <flux:navlist.item icon="clock" :href="route('attendance.index')" :current="request()->routeIs('attendance.index')" wire:navigate>{{ __('Attendance Tracking') }}</flux:navlist.item>
                 <flux:navlist.item icon="clock" :href="route('attendance.history')" :current="request()->routeIs('attendance.history')" wire:navigate>{{ __('Attendance History') }}</flux:navlist.item>
+                <flux:navlist.item icon="fire" :href="route('attendance.burnout-analysis')" :current="request()->routeIs('attendance.burnout-analysis')" wire:navigate>{{ __('Burnout Analysis') }}</flux:navlist.item>
             </flux:navlist.group>
 
             <flux:navlist.group :heading="__('Tea Production')" class="grid">

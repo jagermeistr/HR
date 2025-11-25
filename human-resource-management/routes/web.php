@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\MpesaB2CController;
 use App\Http\Controllers\DashboardController;
+use Carbon\Carbon;
 
 
 Route::get('/', function () {
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('attendance')->name('attendance.')->group(function () {
             Route::get('/', Admin\Attendance\Index::class)->name('index');
             Route::get('/history', Admin\Attendance\History::class)->name('history'); 
+            Route::get('/burnout-analysis', Admin\Attendance\BurnoutAnalysis::class)->name('burnout-analysis');
         });
 
         Route::prefix('leave')->name('leave.')->group(function () {
@@ -138,6 +140,31 @@ Route::get('/test-notification-fresh', function () {
     }
 });
 
+
+// routes/web.php
+Route::get('/burnout-demo', function () {
+    $employees = App\Models\Employee::with('attendances')->take(3)->get();
+    
+    $results = [];
+    foreach ($employees as $employee) {
+        $recentAttendances = $employee->attendances->where('date', '>=', now()->subDays(30));
+        
+        $results[] = [
+            'employee' => $employee->name,
+            'burnout_risk' => $employee->calculateBurnoutRisk(),
+            'total_days' => $recentAttendances->count(),
+            'average_hours' => round($recentAttendances->avg('total_hours') ?? 0, 1),
+            'late_days' => $recentAttendances->where('status', 'late')->count(),
+            'absent_days' => $recentAttendances->where('status', 'absent')->count(),
+            'overtime_days' => $recentAttendances->where('total_hours', '>', 10)->count(),
+            'weekend_work' => $recentAttendances->filter(function($attendance) {
+                return Carbon::parse($attendance->date)->isWeekend();
+            })->count(),
+        ];
+    }
+    
+    return view('burnout-demo', ['results' => $results]);
+});
 Route::get('/force-clear', function () {
     Artisan::call('config:clear');
     Artisan::call('cache:clear');

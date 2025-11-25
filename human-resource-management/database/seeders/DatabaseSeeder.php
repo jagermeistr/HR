@@ -24,9 +24,12 @@ class DatabaseSeeder extends Seeder
             DepartmentsSeeder::class,
             EmployeesSeeder::class,
             ContractsSeeder::class,
+            CompanySettingSeeder::class,
             FarmerSeeder::class,
             CollectionCenterSeeder::class,
             ProductionRecordSeeder::class,
+            BurnoutTestAttendanceSeeder::class,
+            LeaveTypeSeeder::class,
         ]);
     }
 }

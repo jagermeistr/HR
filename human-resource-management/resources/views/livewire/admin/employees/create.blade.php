@@ -112,6 +112,11 @@
                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        
+
+                        <!-- Hidden Company ID Field -->
+                        <input type="hidden" wire:model="employee.company_id" value="{{ getCompany()->id }}">
                     </div>
 
                     <!-- Submit Button -->

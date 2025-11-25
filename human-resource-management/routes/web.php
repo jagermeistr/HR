@@ -2,6 +2,9 @@
 
 use App\Livewire\Admin;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\MpesaB2CController;
 use App\Http\Controllers\DashboardController;
@@ -96,12 +99,96 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+
+
+// ... your existing routes should be here ...
+
+// =====================
+// DEBUG ROUTES - ADD THESE AT THE BOTTOM
+// =====================
+
+Route::get('/debug-url', function () {
+    $feedback = \App\Models\Feedback::latest()->first();
+    
+    echo "<h1>URL Generation Debug</h1>";
+    echo "APP_URL: " . config('app.url') . "<br>";
+    echo "url() helper: " . url('/') . "<br>";
+    echo "current(): " . url()->current() . "<br>";
+    
+    if ($feedback) {
+        echo "Feedback URL: " . url('/feedback/' . $feedback->id) . "<br>";
+    }
+    
+    return "URL debug complete";
+});
+
+Route::get('/test-notification-fresh', function () {
+    try {
+        $employee = \App\Models\Employee::find(193); // Jeremy Mwangi
+        $feedback = \App\Models\Feedback::latest()->first(); // Use latest feedback
+        
+        if ($employee && $feedback) {
+            $employee->notify(new \App\Notifications\NewFeedbackNotification($feedback));
+            return "✅ Fresh notification sent! Check Laravel logs for the URL used.";
+        }
+        return "Employee or feedback not found";
+        
+    } catch (\Exception $e) {
+        return "❌ Notification failed: " . $e->getMessage();
+    }
+});
+
+Route::get('/force-clear', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    Artisan::call('route:clear');
+    Artisan::call('optimize:clear');
+    
+    // Manually delete cached files
+    $files = glob('bootstrap/cache/*.php');
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+    
+    return "✅ All caches cleared and files deleted!";
+});
+
+Route::get('/check-config', function () {
+    echo "<h1>Current Configuration</h1>";
+    echo "APP_URL: " . config('app.url') . "<br>";
+    echo "MAIL_FROM: " . config('mail.from.address') . "<br>";
+    echo "MAIL_FROM_NAME: " . config('mail.from.name') . "<br>";
+    
+    // Test if config is using current ngrok
+    if (str_contains(config('app.url'), '27e3422d8fc9')) {
+        echo "✅ Using CURRENT ngrok URL<br>";
+    } else {
+        echo "❌ Using OLD ngrok URL: " . config('app.url') . "<br>";
+    }
+    
+    return "Check complete";
+});
+
+Route::get('/clear-all', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    Artisan::call('route:clear');
+    Artisan::call('optimize:clear');
+    
+    return "✅ All caches cleared!";
+});
+
 // M-Pesa B2C Callback Routes (exclude from web middleware)
 Route::withoutMiddleware(['web'])->group(function () {
     Route::post('/mpesa/b2c/result', [App\Http\Controllers\MpesaB2CController::class, 'handleB2CResult']);
     Route::post('/mpesa/b2c/timeout', [App\Http\Controllers\MpesaB2CController::class, 'handleB2CTimeout']);
     Route::post('/mpesa/b2c/queue-timeout', [App\Http\Controllers\MpesaB2CController::class, 'handleQueueTimeout']);
 });
+
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

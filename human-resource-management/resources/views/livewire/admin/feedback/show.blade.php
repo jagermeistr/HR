@@ -13,9 +13,9 @@
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <!-- Flash Messages -->
                         @if (session('message'))
-                            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded">
-                                {{ session('message') }}
-                            </div>
+                        <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 rounded">
+                            {{ session('message') }}
+                        </div>
                         @endif
 
                         <!-- Back Button -->
@@ -33,9 +33,9 @@
                                     <p class="mt-1 text-lg">
                                         {{ $feedback->is_anonymous ? 'Anonymous' : $feedback->sender->name }}
                                         @if($feedback->is_anonymous)
-                                            <svg class="w-5 h-5 text-gray-400 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                            </svg>
+                                        <svg class="w-5 h-5 text-gray-400 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
                                         @endif
                                     </p>
                                 </div>
@@ -43,9 +43,9 @@
                                     <label class="text-sm font-medium text-gray-500 dark:text-gray-400">To</label>
                                     <p class="mt-1 text-lg">
                                         @if($feedback->employee)
-                                            {{ $feedback->employee->name }}
+                                        {{ $feedback->employee->name }}
                                         @else
-                                            Employee Not Found
+                                        Employee Not Found
                                         @endif
                                     </p>
                                 </div>
@@ -77,59 +77,46 @@
                             </div>
                         </div>
 
-                        <!-- Responses Section -->
                         <div>
-                            <h3 class="text-xl font-semibold mb-4 flex items-center">
-                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                Responses
-                                <span class="ml-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-sm">
-                                    {{ $feedback->responses->count() }}
-                                </span>
-                            </h3>
+                            <<!-- Responses Section -->
+                                <div class="mt-8">
+                                    <h3 class="text-xl font-semibold mb-4">Employee Responses ({{ $feedback->responses->count() }})</h3>
 
-                            <!-- Responses List -->
-                            <div class="space-y-4 mb-6">
-                                @foreach($feedback->responses as $response)
-                                    <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                    @foreach($feedback->responses as $response)
+                                    <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                         <div class="flex justify-between items-start mb-2">
                                             <strong class="text-blue-600 dark:text-blue-400">
-                                                {{ $response->user->name }}
+                                                {{ $response->responder_name }}
                                             </strong>
                                             <span class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ $response->created_at->format('M j, Y \\a\\t g:i A') }}
                                             </span>
                                         </div>
-                                        <p class="text-gray-700 dark:text-gray-300">{{ $response->response }}</p>
+                                        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ $response->response }}</p>
                                     </div>
-                                @endforeach
+                                    @endforeach
 
-                                @if($feedback->responses->isEmpty())
+                                    @if($feedback->responses->isEmpty())
                                     <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
-                                        <p>No responses yet.</p>
+                                        <p>No responses from employee yet.</p>
                                     </div>
-                                @endif
-                            </div>
+                                    @endif
+                                </div>
 
-                            <!-- Add Response Form -->
-                            @if(auth()->check())
+                                <!-- Add Response Form -->
+                                @if(auth()->check())
                                 <form wire:submit="addResponse">
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Your Response *
                                         </label>
-                                        <textarea 
-                                            wire:model="response" 
+                                        <textarea
+                                            wire:model="response"
                                             rows="4"
                                             class="w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 @error('response') border-red-500 @enderror"
-                                            placeholder="Share your thoughts or acknowledge the feedback..."
-                                        ></textarea>
+                                            placeholder="Share your thoughts or acknowledge the feedback..."></textarea>
                                         @error('response')
-                                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                         @enderror
                                     </div>
 
@@ -139,7 +126,7 @@
                                         </button>
                                     </div>
                                 </form>
-                            @endif
+                                @endif
                         </div>
                     </div>
                 </div>

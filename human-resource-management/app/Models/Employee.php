@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 
 class Employee extends Model
 {
+    use Notifiable;
+
     protected $fillable =[
         'name',
         'email',
@@ -16,6 +19,11 @@ class Employee extends Model
         'designation_id',
         'address'
     ];
+
+    public function routeNotificationForMail()
+    {
+        return $this->email;
+    }
 
     public function designation(): BelongsTo
     {
